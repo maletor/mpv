@@ -367,6 +367,26 @@ pp[=filter1[:option1[:option2...]]/[-]filter2...]
         Horizontal deblocking on luminance only, and switch vertical
         deblocking on or off automatically depending on available CPU time.
 
+lavfi=graph[:sws_flags]
+
+    <graph>
+        The libavfilter graph string. The filter must have a single video input
+        pad and a single video output pad.
+
+        See ``https://ffmpeg.org/ffmpeg-filters.html`` for syntax and available
+        filters.
+
+        *WARNING*: as of now, there's no way to actually use the full filter
+        syntax with this option, because the sub-option parser sucks. Most
+        filters are not useable as result.
+
+    <sws_flags>
+        If libavfilter inserts filters for pixel format conversion, this
+        option gives the flags which should be passed to libswscale. This
+        option is numeric and takes a bit-wise combination of ``SWS_`` flags.
+
+        See ``http://git.videolan.org/?p=ffmpeg.git;a=blob;f=libswscale/swscale.h``.
+
 noise[=luma[u][t|a][h][p]:chroma[u][t|a][h][p]]
     Adds noise.
 
