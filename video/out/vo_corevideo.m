@@ -183,8 +183,8 @@ static void video_vertex(struct vo *vo, float x, float y)
 
     gl->TexCoord2f(tx0 + (sx0 + x * sw) * tw,
                    ty0 + (sy0 + y * sh) * th);
-    gl->Vertex2f(p->dst_rect.x1 * x + p->dst_rect.x0 * (x - 1),
-                 p->dst_rect.y1 * y + p->dst_rect.y0 * (y - 1));
+    gl->Vertex2f(p->dst_rect.x1 * x + p->dst_rect.x0 * (1 - x),
+                 p->dst_rect.y1 * y + p->dst_rect.y0 * (1 - y));
 }
 
 static void do_render(struct vo *vo)
