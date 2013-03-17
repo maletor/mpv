@@ -164,8 +164,8 @@ static void prepare_texture(struct vo *vo)
                                                  q->upperRight, q->upperLeft);
 }
 
-// map x/y (in range 0..1) to video texture coords, and emit to OpenGL
-static void video_texcoord(struct vo *vo, float x, float y)
+// map x/y (in range 0..1) to the video texture, and emit OpenGL vertexes
+static void video_vertex(struct vo *vo, float x, float y)
 {
     struct priv *p = vo->priv;
     struct quad *q = p->quad;
@@ -183,6 +183,8 @@ static void video_texcoord(struct vo *vo, float x, float y)
 
     gl->TexCoord2f(tx0 + (sx0 + x * sw) * tw,
                    ty0 + (sy0 + y * sh) * th);
+    gl->Vertex2f(p->dst_rect.x1 * x + p->dst_rect.x0 * (x - 1),
+                 p->dst_rect.y1 * y + p->dst_rect.y0 * (y - 1));
 }
 
 static void do_render(struct vo *vo)
@@ -197,10 +199,10 @@ static void do_render(struct vo *vo)
             CVOpenGLTextureGetName(p->texture));
 
     gl->Begin(GL_QUADS);
-    video_texcoord(vo, 0, 0); gl->Vertex2f(p->dst_rect.x0, p->dst_rect.y0);
-    video_texcoord(vo, 0, 1); gl->Vertex2f(p->dst_rect.x0, p->dst_rect.y1);
-    video_texcoord(vo, 1, 1); gl->Vertex2f(p->dst_rect.x1, p->dst_rect.y1);
-    video_texcoord(vo, 1, 0); gl->Vertex2f(p->dst_rect.x1, p->dst_rect.y0);
+    video_vertex(vo, 0, 0);
+    video_vertex(vo, 0, 1);
+    video_vertex(vo, 1, 1);
+    video_vertex(vo, 1, 0);
     gl->End();
 
     gl->Disable(CVOpenGLTextureGetTarget(p->texture));
