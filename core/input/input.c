@@ -1318,11 +1318,15 @@ void mp_input_feed_key(struct input_ctx *ictx, int code)
 {
     ictx->got_new_events = true;
     if (code == MP_INPUT_RELEASE_ALL) {
+        mp_msg(MSGT_INPUT, MSGL_V, "release all\n");
         memset(ictx->key_down, 0, sizeof(ictx->key_down));
         ictx->num_key_down = 0;
         ictx->last_key_down = 0;
         return;
     }
+    if (code & MP_KEY_STATE_DOWN)
+        mp_msg(MSGT_INPUT, MSGL_V, "down: ");
+    mp_msg(MSGT_INPUT, MSGL_V, "code %#x -\n", code);
     struct mp_cmd *cmd = interpret_key(ictx, code);
     if (!cmd)
         return;
