@@ -63,7 +63,7 @@
 
 #include "ar.h"
 
-#define MP_MAX_KEY_DOWN 32
+#define MP_MAX_KEY_DOWN 4
 
 struct cmd_bind {
     int input[MP_MAX_KEY_DOWN + 1];
