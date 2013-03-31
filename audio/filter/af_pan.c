@@ -103,20 +103,6 @@ static int control(struct af_instance* af, int cmd, void* arg)
       level[i] = s->level[ch][i];
     return AF_OK;
   }
-  case AF_CONTROL_PAN_NOUT | AF_CONTROL_SET:
-    // Reinit must be called after this function has been called
-
-    // Sanity check
-    if(((int*)arg)[0] <= 0 || ((int*)arg)[0] > AF_NCH){
-      mp_msg(MSGT_AFILTER, MSGL_ERR, "[pan] The number of output channels must be"
-	     " between 1 and %i. Current value is %i\n",AF_NCH,((int*)arg)[0]);
-      return AF_ERROR;
-    }
-    s->nch=((int*)arg)[0];
-    return AF_OK;
-  case AF_CONTROL_PAN_NOUT | AF_CONTROL_GET:
-    *(int*)arg = af->data->nch;
-    return AF_OK;
   case AF_CONTROL_PAN_BALANCE | AF_CONTROL_SET:{
     float val = *(float*)arg;
     if (s->nch)
