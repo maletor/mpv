@@ -1222,7 +1222,10 @@ static mp_cmd_t *interpret_key(struct input_ctx *ictx, int code)
         ictx->num_key_down++;
         ictx->last_key_down = GetTimer();
         ictx->ar_state = 0;
-        return NULL;
+        ret = NULL;
+        if (!(code & MP_NO_REPEAT_KEY))
+            ret = get_cmd_from_keys(ictx, ictx->num_key_down, ictx->key_down);
+        return ret;
     }
     // button released or press of key with no separate down/up events
     for (j = 0; j < ictx->num_key_down; j++) {
@@ -1238,6 +1241,7 @@ static mp_cmd_t *interpret_key(struct input_ctx *ictx, int code)
         j = ictx->num_key_down - 1;
         ictx->key_down[j] = code;
     }
+    bool emit_key = ictx->last_key_down && (code & MP_NO_REPEAT_KEY);
     if (j == ictx->num_key_down) {  // was not already down; add temporarily
         if (ictx->num_key_down > MP_MAX_KEY_DOWN) {
             mp_tmsg(MSGT_INPUT, MSGL_ERR, "Too many key down events "
@@ -1246,12 +1250,12 @@ static mp_cmd_t *interpret_key(struct input_ctx *ictx, int code)
         }
         ictx->key_down[ictx->num_key_down] = code;
         ictx->num_key_down++;
-        ictx->last_key_down = 1;
+        emit_key = true;
     }
     // Interpret only maximal point of multibutton event
-    ret = ictx->last_key_down ?
-          get_cmd_from_keys(ictx, ictx->num_key_down, ictx->key_down)
-          : NULL;
+    ret = NULL;
+    if (emit_key)
+        ret = get_cmd_from_keys(ictx, ictx->num_key_down, ictx->key_down);
     if (doubleclick) {
         ictx->key_down[j] = code - MP_MOUSE_BTN0_DBL + MP_MOUSE_BTN0;
         return ret;
