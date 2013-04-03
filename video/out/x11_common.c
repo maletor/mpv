@@ -65,6 +65,12 @@
 #include <X11/XF86keysym.h>
 #endif
 
+// Is XKB always available?
+#define CONFIG_XKB
+#ifdef CONFIG_XKB
+#include <X11/XKBlib.h>
+#endif
+
 #include "core/input/input.h"
 #include "core/input/keycodes.h"
 
@@ -416,6 +422,15 @@ void vo_x11_update_screeninfo(struct vo *vo)
     aspect_save_screenres(vo, opts->screenwidth, opts->screenheight);
 }
 
+static bool disable_auto_repeat(Display *display)
+{
+    Bool ok = False;
+#ifdef CONFIG_XKB
+    XkbSetDetectableAutoRepeat(display, True, &ok);
+#endif
+    return ok;
+}
+
 int vo_x11_init(struct vo *vo)
 {
     struct mp_vo_opts *opts = vo->opts;
@@ -449,6 +464,9 @@ int vo_x11_init(struct vo *vo)
     }
     x11->screen = DefaultScreen(x11->display);  // screen ID
     x11->rootwin = RootWindow(x11->display, x11->screen);   // root window ID
+
+    if (!opts->native_keyrepeat)
+        x11->no_autorepeat = disable_auto_repeat(x11->display);
 
     x11->xim = XOpenIM(x11->display, NULL, NULL, NULL);
 
@@ -721,6 +739,8 @@ int vo_x11_check_events(struct vo *vo)
             char buf[100];
             KeySym keySym = 0;
             int modifiers = 0;
+            if (x11->no_autorepeat)
+                modifiers |= MP_KEY_STATE_DOWN;
             if (Event.xkey.state & ShiftMask)
                 modifiers |= MP_KEY_MODIFIER_SHIFT;
             if (Event.xkey.state & ControlMask)
@@ -747,8 +767,17 @@ int vo_x11_check_events(struct vo *vo)
                 if (mpkey)
                     mplayer_put_key(vo->key_fifo, mpkey | modifiers);
             }
+            break;
         }
-        break;
+        // Releasing all keys in these situations is simpler and ensures no
+        // keys can be get "stuck".
+        case FocusOut:
+        case KeyRelease:
+        {
+            if (x11->no_autorepeat)
+                mplayer_put_key(vo->key_fifo, MP_INPUT_RELEASE_ALL);
+            break;
+        }
         case MotionNotify:
             vo_mouse_movement(vo, Event.xmotion.x, Event.xmotion.y);
             vo_x11_unhide_cursor(vo);
@@ -988,7 +1017,8 @@ static void vo_x11_map_window(struct vo *vo, int x, int y, int w, int h)
         vo_x11_decoration(vo, 0);
     // map window
     vo_x11_selectinput_witherr(vo, x11->display, x11->window,
-                               StructureNotifyMask | KeyPressMask |
+                               StructureNotifyMask |
+                               KeyPressMask | KeyReleaseMask |
                                ButtonPressMask | ButtonReleaseMask |
                                PointerMotionMask | ExposureMask);
     XMapWindow(x11->display, x11->window);
