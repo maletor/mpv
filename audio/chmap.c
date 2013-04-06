@@ -206,7 +206,10 @@ static void mp_chmap_reorder(struct mp_chmap *map, int *reorder)
 
 void mp_chmap_reorder_to_alsa(struct mp_chmap *map)
 {
-    mp_chmap_reorder_to_lavc(map);
+    // Force standard layout, so that only ALSA supported layouts are active.
+    // This might not be a reasonable way to handle fallback, but it's still
+    // better than allowing an essentially random mapping.
+    mp_chmap_from_channels(map, map->num);
     // The channel order differs from lavc for 5, 6 and 8.
     // I don't know about channels > 8.
     if (map->num == 5) {
