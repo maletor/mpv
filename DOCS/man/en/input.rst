@@ -79,6 +79,10 @@ seek <seconds> [relative|absolute|absolute-percent|- [default-precise|exact|keyf
 frame_step
     Play one frame, then pause.
 
+frame_back_step
+    Go back by one frame, then pause. Note that this is very slow (as it tries
+    to be exact), and can sometimes fail to behave as expected.
+
 set <property> "<value>"
     Set the given property to the given value.
 
